@@ -7,18 +7,27 @@ permissions:
 jobs:
   php:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
         php: ['8.4', '8.5']
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: shivammathur/setup-php@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
           coverage: none
-          extensions: mbstring, sqlite3, pdo_sqlite
+          extensions: fileinfo, mbstring, sqlite3, pdo_sqlite
           tools: composer:v2
+      - name: Verify PHP extensions
+        run: |
+          php -v
+          php --ri fileinfo
+          php --ri mbstring
+          php --ri pdo_sqlite
       - name: Check Composer manifest
         run: composer validate --no-check-publish
       - name: Install dependencies
@@ -33,4 +42,3 @@ jobs:
         run: php artisan test
       - name: Check formatting
         run: vendor/bin/pint --test
-
